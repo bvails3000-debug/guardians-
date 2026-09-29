@@ -1,0 +1,11 @@
+{
+  "name": "guardians-fitness",
+  "version": "1.0.0",
+  "description": "Adaptive military fitness test trainer (installable PWA)",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --test"
+  }
+}
