@@ -8,6 +8,7 @@ import { buildContext, weekTemplate, defaultRequirement, latestResult, DEFAULT_T
 import { addDays, isoDate, parseValue, prettyDate, WEEKDAY_NAMES, daysBetween } from '../util.js';
 import { h, fmt, inputPlaceholder, inputMode, formatForInput } from './components.js';
 import { addResult } from '../store.js';
+import { THEMES, applyTheme, emblemSvg, resolveTheme } from '../themes.js';
 
 const STEPS = ['welcome', 'about', 'job', 'targets', 'stats', 'schedule', 'review'];
 const STEP_LABELS = { about: 'You', job: 'Job', targets: 'Scores', stats: 'Stats', schedule: 'Schedule', review: 'Plan' };
@@ -127,9 +128,10 @@ function viewAbout() {
       </div>
     </div>
     <h3>Branch</h3>
+    <p class="muted small">The app switches to your branch’s colors. You can pick a different theme anytime in Settings.</p>
     <div class="grid-branches">
       ${Object.values(BRANCHES)
-        .map((b) => `<button type="button" class="branch ${p.branch === b.id ? 'on' : ''}" data-branch="${b.id}" style="--bc:${b.color}"><span class="branch-dot"></span>${b.name}</button>`)
+        .map((b) => `<button type="button" class="branch ${p.branch === b.id ? 'on' : ''}" data-branch="${b.id}" style="--bc:${b.color}"><span class="branch-mark">${emblemSvg(THEMES[b.id], 22)}</span>${b.name}</button>`)
         .join('')}
     </div>
     ${nav()}`;
@@ -424,6 +426,8 @@ const VIEWS = { welcome: viewWelcome, about: viewAbout, job: viewJob, targets: v
 
 export function renderOnboarding(root, app) {
   if (!draft) startOnboarding(app, app.state.onboarded);
+  // Preview the branch theme live while choosing.
+  applyTheme(resolveTheme({ profile: draft.profile, settings: app.state.settings }));
   root.innerHTML = `<div class="wizard">${VIEWS[draft.step]()}</div>`;
   bind(root, app);
 }

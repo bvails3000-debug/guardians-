@@ -7,6 +7,7 @@ import { plugin } from './native.js';
 import { TESTS, BRANCHES } from './data/tests.js';
 import { getJob } from './data/jobs.js';
 import { PAIN_AREAS } from './engine/adapt.js';
+import { THEMES } from './themes.js';
 
 const KEY = 'guardians.state.v1';
 
@@ -19,7 +20,7 @@ export function emptyState() {
     schedule: { startDate: isoDate(), testDate: null, trainingDays: [1, 2, 4, 5], pool: true },
     results: [],
     diary: [],
-    settings: { reminder: { enabled: false, time: '07:00' } },
+    settings: { reminder: { enabled: false, time: '07:00' }, theme: 'auto' },
   };
 }
 
@@ -165,7 +166,9 @@ export function importJson(text) {
       })),
   };
   const rem = data.settings?.reminder || {};
+  const theme = data.settings?.theme;
   state.settings = {
+    theme: theme === 'auto' || THEMES[theme] ? theme : 'auto',
     reminder: {
       enabled: rem.enabled === true,
       time: typeof rem.time === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(rem.time) ? rem.time : base.settings.reminder.time,

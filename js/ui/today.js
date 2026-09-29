@@ -6,6 +6,7 @@ import { analyze, dayScore } from '../engine/adapt.js';
 import { buildContext, planSession, planSummary } from '../engine/planner.js';
 import { addDays, daysBetween, isoDate, prettyDate } from '../util.js';
 import { h, sessionCard, intensityBadge, ring, messages } from './components.js';
+import { emblemSvg, resolveTheme } from '../themes.js';
 
 function greeting(name) {
   const hr = new Date().getHours();
@@ -24,6 +25,7 @@ export function renderToday(root, app) {
   const todayEntry = state.diary.find((e) => e.date === today);
   const daysLeft = daysBetween(today, ctx.testDate);
   const unknown = ctx.events.filter((e) => !e.known);
+  const theme = resolveTheme(state);
 
   const upcoming = [];
   for (let i = 1; i <= 3; i++) {
@@ -53,6 +55,7 @@ export function renderToday(root, app) {
         <h1>${h(greeting(state.profile.name))}</h1>
         <p class="muted">${job ? `${h(job.code)} · ${h(job.title)}` : h(ctx.tests.map((t) => t.test.short).join(' + '))}</p>
       </div>
+      <a class="brand-badge" href="#/settings" aria-label="${h(theme.name)} theme — change in Settings">${emblemSvg(theme, 30)}</a>
     </header>
 
     <div class="grid-2">

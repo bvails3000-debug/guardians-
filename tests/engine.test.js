@@ -239,6 +239,8 @@ test('backup import keeps valid data and drops malformed or unsafe fields', asyn
   assert.deepEqual(clean.goal.customTotals, {});
   assert.equal(clean.results.length, 1);
   assert.deepEqual(clean.diary[0].pain, ['knee']);
+  assert.equal(importJson(JSON.stringify({ ...good, settings: { theme: 'airforce' } })).settings.theme, 'airforce');
+  assert.equal(importJson(JSON.stringify({ ...good, settings: { theme: '"><script>' } })).settings.theme, 'auto');
 
   assert.throws(() => importJson('not json'), /valid JSON/);
   assert.throws(() => importJson('{}'), /Guardians backup/);

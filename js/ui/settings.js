@@ -8,6 +8,7 @@ import { exportJson, importJson, reset } from '../store.js';
 import { startOnboarding } from './onboarding.js';
 import { isNative } from '../native.js';
 import { requestReminderPermission } from '../reminders.js';
+import { THEMES, emblemSvg, resolveTheme } from '../themes.js';
 
 export function renderSettings(root, app) {
   const s = app.state;
@@ -16,6 +17,18 @@ export function renderSettings(root, app) {
   const levels = { target: 'Recommended', min: 'Minimum', custom: 'Custom' };
   const native = isNative();
   const reminder = s.settings?.reminder || { enabled: false, time: '07:00' };
+  const themeChoice = s.settings?.theme || 'auto';
+  const branchTheme = THEMES[s.profile.branch] || THEMES.classic;
+  const swatch = (t) => {
+    const dots = t.stripe.map((c) => `<span style="background:${c}"></span>`).join('');
+    return `<span class="swatch-dots">${dots}</span>`;
+  };
+  const themeOption = (id, label, t) => `
+      <button type="button" class="theme-opt ${themeChoice === id ? 'on' : ''}" data-theme-choice="${id}" aria-pressed="${themeChoice === id}">
+        <span class="theme-emblem">${emblemSvg(t, 22)}</span>
+        <span class="theme-name">${h(label)}</span>
+        ${swatch(t)}
+      </button>`;
   root.innerHTML = `
     <header class="page-head"><h1>Settings</h1></header>
 
@@ -30,6 +43,19 @@ export function renderSettings(root, app) {
         <dt>Training for</dt><dd>${levels[s.goal.level] || 'Recommended'} score</dd>
       </dl>
       <button class="btn btn-primary" data-edit>Change job, targets or stats</button>
+    </div>
+
+    <div class="card">
+      <h3>Theme</h3>
+      <p class="muted small">Now showing: <strong>${h(resolveTheme(s).name)}</strong>. Light or dark follows your phone’s setting.</p>
+      <div class="theme-grid">
+        ${themeOption('auto', `Match my branch (${branchTheme.name})`, branchTheme)}
+        ${Object.values(THEMES)
+          .filter((t) => t.id !== 'classic')
+          .map((t) => themeOption(t.id, t.name, t))
+          .join('')}
+        ${themeOption('classic', 'Classic', THEMES.classic)}
+      </div>
     </div>
 
     <div class="card form">
@@ -93,6 +119,12 @@ export function renderSettings(root, app) {
     </div>
   `;
 
+  root.querySelectorAll('[data-theme-choice]').forEach((b) =>
+    b.addEventListener('click', () => {
+      app.commit((st) => (st.settings = { ...st.settings, theme: b.dataset.themeChoice }));
+      toast(`${resolveTheme(app.state).name} theme on`);
+    }),
+  );
   root.querySelector('[data-edit]').addEventListener('click', () => {
     startOnboarding(app, true);
     app.go('#/setup');

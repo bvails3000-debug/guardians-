@@ -79,6 +79,33 @@ em { font-style: italic; }
 
 .page-head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px; }
 .page-head p { margin: 0; }
+.page-head { gap: 12px; }
+
+/* ---------- branch theme ---------- */
+/* Thin branch-colored stripe just below the status bar / notch. */
+.brand-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 30; pointer-events: none;
+  height: calc(4px + env(safe-area-inset-top));
+  background: linear-gradient(var(--bg), var(--bg)) top / 100% env(safe-area-inset-top) no-repeat, var(--stripe, var(--accent));
+}
+body { transition: background-color 0.25s; }
+.brand-badge {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 52px; height: 52px; border-radius: 16px;
+  color: var(--accent); background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow);
+}
+.theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.theme-opt {
+  font: inherit; font-size: 0.9rem; font-weight: 600; text-align: left; cursor: pointer;
+  display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 4px 10px; align-items: center;
+  padding: 10px 12px; min-height: 60px; border-radius: 12px;
+  border: 2px solid var(--line); background: var(--card-2); color: var(--text);
+}
+.theme-opt:first-child { grid-column: 1 / -1; }
+.theme-opt.on { border-color: var(--accent); }
+.theme-emblem { grid-row: 1 / 3; color: var(--accent); display: inline-flex; }
+.swatch-dots { display: flex; gap: 3px; }
+.swatch-dots span { width: 18px; height: 6px; border-radius: 3px; box-shadow: 0 0 0 1px var(--line); }
 
 /* ---------- cards ---------- */
 .card {
@@ -194,7 +221,7 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   display: flex; align-items: center; gap: 10px;
   padding: 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); color: var(--text);
 }
-.branch-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--bc); box-shadow: 0 0 0 2px var(--line); flex: none; }
+.branch-mark { display: inline-flex; width: 34px; height: 34px; border-radius: 10px; align-items: center; justify-content: center; flex: none; color: #fff; background: var(--bc); box-shadow: 0 0 0 2px var(--line); }
 .branch.on { border-color: var(--accent); background: var(--card-2); }
 .search { margin-bottom: 8px; }
 .job-list, .test-pick { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 16px; }

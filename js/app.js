@@ -4,6 +4,7 @@ import * as store from './store.js';
 import { isNative, platform } from './native.js';
 import { syncReminders } from './reminders.js';
 import { escapeHtml } from './util.js';
+import { applyTheme, resolveTheme } from './themes.js';
 import { renderOnboarding } from './ui/onboarding.js';
 import { renderToday } from './ui/today.js';
 import { renderPlan } from './ui/plan.js';
@@ -54,6 +55,7 @@ function parseRoute() {
 
 function render() {
   if (!app.state) return; // not initialized yet
+  applyTheme(resolveTheme(app.state));
   let { name, param } = parseRoute();
   if (!app.state.onboarded) name = 'setup';
   else if (!ROUTES[name]) name = 'today';

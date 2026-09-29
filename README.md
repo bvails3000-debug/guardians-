@@ -31,6 +31,9 @@ automatically.
   - Notes are read too: "exhausted", "knee hurts", "flu" and "new PR" all count
 - **Progress tracking.** Estimated score per test, per-event bars against the minimum and your goal, trend sparklines,
   and single-result or full mock-test logging. New results automatically recalibrate the plan.
+- **Branch themes.** The app takes on your branch's colors (Army black & gold, Marine scarlet & gold, Navy blue & gold,
+  Air Force blue & silver, Space Force black & silver, Coast Guard red & blue), with a branch symbol and stripe. Pick any theme
+  in Settings; light and dark follow the phone. All themes are tested for readable contrast (WCAG AA).
 - **Private and offline.** All data stays on the device (localStorage). It installs to the home screen and works without a
   connection. JSON backup and restore are included.
 
@@ -76,6 +79,7 @@ js/engine/adapt.js                        Diary analysis → plan adjustments
 js/ui/*.js                                Screens (onboarding, today, plan, diary, progress, settings)
 tests/engine.test.js                      Unit tests for scoring, planning and adaptation
 js/native.js, js/reminders.js             Capacitor bridge (no-op on the web) and daily reminders
+js/themes.js                              Branch color themes and symbols
 privacy.html                              Privacy policy (required by both stores)
 scripts/serve.mjs                         Dev server
 scripts/build-web.mjs                     Copies the web app into www/ for Capacitor

@@ -1,5 +1,5 @@
 // Offline support: cache the app shell, serve cache-first, refresh in the background.
-const CACHE = 'guardians-v2';
+const CACHE = 'guardians-v3';
 const SHELL = [
   './',
   './index.html',
@@ -14,6 +14,7 @@ const SHELL = [
   './js/store.js',
   './js/native.js',
   './js/reminders.js',
+  './js/themes.js',
   './js/data/tests.js',
   './js/data/jobs.js',
   './js/engine/scoring.js',
