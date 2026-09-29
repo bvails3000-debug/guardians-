@@ -1,6 +1,9 @@
-// Local persistence. All data stays on the device (localStorage).
+// Local persistence. All data stays on the device: localStorage in the browser, plus Capacitor
+// Preferences (UserDefaults / SharedPreferences) in the native apps, because iOS may clear WebView
+// storage when the device is low on space.
 
 import { isoDate } from './util.js';
+import { plugin } from './native.js';
 import { TESTS, BRANCHES } from './data/tests.js';
 import { getJob } from './data/jobs.js';
 import { PAIN_AREAS } from './engine/adapt.js';
@@ -16,16 +19,40 @@ export function emptyState() {
     schedule: { startDate: isoDate(), testDate: null, trainingDays: [1, 2, 4, 5], pool: true },
     results: [],
     diary: [],
+    settings: { reminder: { enabled: false, time: '07:00' } },
   };
 }
 
 let memoryFallback = null;
 
+/**
+ * Native apps: restore state from native storage before the first render.
+ * Native storage wins because it survives WebView storage eviction.
+ */
+export async function hydrate() {
+  const prefs = plugin('Preferences');
+  if (!prefs) return;
+  try {
+    const { value } = await prefs.get({ key: KEY });
+    if (value) {
+      localStorage.setItem(KEY, value);
+    } else {
+      // First launch after an update that added native storage: copy existing data across.
+      const local = localStorage.getItem(KEY);
+      if (local) await prefs.set({ key: KEY, value: local });
+    }
+  } catch {
+    /* fall back to localStorage */
+  }
+}
+
 export function load() {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return memoryFallback || emptyState();
-    return { ...emptyState(), ...JSON.parse(raw) };
+    const base = emptyState();
+    const data = JSON.parse(raw);
+    return { ...base, ...data, settings: { ...base.settings, ...data.settings } };
   } catch {
     return memoryFallback || emptyState();
   }
@@ -33,11 +60,13 @@ export function load() {
 
 export function save(state) {
   memoryFallback = state;
+  const json = JSON.stringify(state);
   try {
-    localStorage.setItem(KEY, JSON.stringify(state));
+    localStorage.setItem(KEY, json);
   } catch {
     /* storage unavailable (private mode) — keep in memory */
   }
+  plugin('Preferences')?.set({ key: KEY, value: json }).catch(() => {});
 }
 
 export function reset() {
@@ -47,6 +76,7 @@ export function reset() {
   } catch {
     /* ignore */
   }
+  plugin('Preferences')?.remove({ key: KEY }).catch(() => {});
 }
 
 /** Add a result; replaces an existing one for the same test/event/date. */
@@ -133,6 +163,13 @@ export function importJson(text) {
         sick: !!e.sick,
         notes: str(e.notes, 2000),
       })),
+  };
+  const rem = data.settings?.reminder || {};
+  state.settings = {
+    reminder: {
+      enabled: rem.enabled === true,
+      time: typeof rem.time === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(rem.time) ? rem.time : base.settings.reminder.time,
+    },
   };
   if (state.onboarded && (!state.profile.age || !state.profile.sex || !state.schedule.testDate)) state.onboarded = false;
   return state;

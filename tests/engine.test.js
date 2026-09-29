@@ -243,3 +243,32 @@ test('backup import keeps valid data and drops malformed or unsafe fields', asyn
   assert.throws(() => importJson('not json'), /valid JSON/);
   assert.throws(() => importJson('{}'), /Guardians backup/);
 });
+
+test('reminders name each training day session and skip rest days', async () => {
+  const { buildReminders } = await import('../js/reminders.js');
+  const state = {
+    ...stateFor('army-11b'),
+    onboarded: true,
+    settings: { reminder: { enabled: true, time: '07:30' } },
+  };
+  const now = new Date(2026, 9, 5, 6, 0); // Mon Oct 5 2026, 06:00 local — before today's reminder
+  const list = buildReminders(state, now);
+  assert.ok(list.length > 0);
+  assert.ok(list.length <= 14);
+  const ctx = buildContext(state);
+  for (const n of list) {
+    assert.ok(n.schedule.at > now);
+    assert.equal(n.schedule.at.getHours(), 7);
+    assert.equal(n.schedule.at.getMinutes(), 30);
+    const iso = `${n.schedule.at.getFullYear()}-${String(n.schedule.at.getMonth() + 1).padStart(2, '0')}-${String(n.schedule.at.getDate()).padStart(2, '0')}`;
+    const s = planSession(ctx, iso);
+    assert.notEqual(s.intensity, 'rest');
+    assert.ok(n.title.includes(s.title));
+  }
+  assert.equal(new Set(list.map((n) => n.id)).size, list.length, 'unique ids');
+  // Today's reminder is skipped once its time has passed.
+  const later = buildReminders(state, new Date(2026, 9, 5, 8, 0));
+  assert.ok(later.every((n) => n.schedule.at > new Date(2026, 9, 5, 8, 0)));
+  // Disabled → nothing.
+  assert.deepEqual(buildReminders({ ...state, settings: { reminder: { enabled: false, time: '07:30' } } }, now), []);
+});

@@ -1,6 +1,9 @@
 // App shell: state holder, hash router, bottom navigation, service worker registration.
 
 import * as store from './store.js';
+import { isNative, platform } from './native.js';
+import { syncReminders } from './reminders.js';
+import { escapeHtml } from './util.js';
 import { renderOnboarding } from './ui/onboarding.js';
 import { renderToday } from './ui/today.js';
 import { renderPlan } from './ui/plan.js';
@@ -21,18 +24,20 @@ const view = document.getElementById('view');
 const nav = document.getElementById('nav');
 
 const app = {
-  state: store.load(),
+  state: null, // set in init() after native storage is restored
   installPrompt: null,
   /** Mutate state, persist, and (by default) re-render the current route. */
   commit(fn, rerender = true) {
     fn(this.state);
     store.save(this.state);
+    syncReminders(this.state);
     if (rerender) render();
   },
   /** Replace the whole state (import / reset). */
   replace(newState) {
     this.state = newState || store.emptyState();
     store.save(this.state);
+    syncReminders(this.state);
     this.go(this.state.onboarded ? '#/today' : '#/setup');
     render();
   },
@@ -48,6 +53,7 @@ function parseRoute() {
 }
 
 function render() {
+  if (!app.state) return; // not initialized yet
   let { name, param } = parseRoute();
   if (!app.state.onboarded) name = 'setup';
   else if (!ROUTES[name]) name = 'today';
@@ -59,7 +65,7 @@ function render() {
     ROUTES[name](view, app, param);
   } catch (err) {
     console.error(err);
-    view.innerHTML = `<div class="card"><h2>Something went wrong</h2><p class="muted">${String(err.message || err)}</p><a class="btn btn-ghost" href="#/settings">Settings</a></div>`;
+    view.innerHTML = `<div class="card"><h2>Something went wrong</h2><p class="muted">${escapeHtml(err.message || err)}</p><a class="btn btn-ghost" href="#/settings">Settings</a></div>`;
   }
 }
 
@@ -76,8 +82,18 @@ window.addEventListener('beforeinstallprompt', (e) => {
   app.installPrompt = e;
 });
 
-if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+// The native apps ship their files inside the app bundle, so offline caching is only for the web.
+if (!isNative() && 'serviceWorker' in navigator && location.protocol !== 'file:') {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }
 
-render();
+async function init() {
+  document.documentElement.dataset.platform = platform();
+  await store.hydrate();
+  app.state = store.load();
+  render();
+  // Reminders name each day's session, so refresh them whenever the app opens.
+  syncReminders(app.state);
+}
+
+init();

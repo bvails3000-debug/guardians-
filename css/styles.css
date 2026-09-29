@@ -119,7 +119,7 @@ details > summary::-webkit-details-marker { display: none; }
 /* ---------- forms ---------- */
 .form label, .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; font-weight: 600; font-size: 0.95rem; }
 .label { font-weight: 600; font-size: 0.95rem; display: block; margin-bottom: 6px; }
-input[type=text], input[type=number], input[type=date], input[type=search], select, textarea {
+input[type=text], input[type=number], input[type=date], input[type=time], input[type=search], select, textarea {
   font: inherit; font-weight: 400;
   width: 100%; min-height: 44px; padding: 10px 12px;
   color: var(--text); background: var(--bg-2);
@@ -349,4 +349,15 @@ table.req tr.total td { border-bottom: none; font-weight: 600; }
 }
 @media (prefers-reduced-motion: reduce) {
   .toast { transition: none; }
+}
+
+/* ---------- native app tweaks ---------- */
+html[data-platform='ios'], html[data-platform='android'] {
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+html[data-platform='ios'] .btn, html[data-platform='ios'] .tabbar,
+html[data-platform='android'] .btn, html[data-platform='android'] .tabbar {
+  -webkit-user-select: none;
+  user-select: none;
 }

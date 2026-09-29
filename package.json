@@ -1,11 +1,26 @@
 {
   "name": "guardians-fitness",
   "version": "1.0.0",
-  "description": "Adaptive military fitness test trainer (installable PWA)",
+  "description": "Adaptive military fitness test trainer — web (PWA), iOS and Android",
   "type": "module",
   "private": true,
   "scripts": {
     "start": "node scripts/serve.mjs",
-    "test": "node --test"
+    "test": "node --test tests/*.test.js",
+    "build": "node scripts/build-web.mjs",
+    "icons": "node scripts/make-icons.mjs",
+    "cap:sync": "npm run build && cap sync",
+    "ios": "npm run cap:sync && cap open ios",
+    "android": "npm run cap:sync && cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
+    "@capacitor/local-notifications": "^8.3.1",
+    "@capacitor/preferences": "^8.0.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.2"
   }
 }

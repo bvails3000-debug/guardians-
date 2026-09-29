@@ -1,6 +1,6 @@
 # Guardians — Adaptive Military Fitness Coach
 
-An installable web app (PWA) that trains you for your military fitness test. Pick the job you want,
+An app for **iOS, Android and the web** that trains you for your military fitness test. Pick the job you want,
 see the score it takes, enter your current stats, and get a day-by-day plan up to test day. The plan
 **adapts to your training diary**: log a bad day, soreness, pain or illness and upcoming sessions change
 automatically.
@@ -34,16 +34,32 @@ automatically.
 - **Private and offline.** All data stays on the device (localStorage). It installs to the home screen and works without a
   connection. JSON backup and restore are included.
 
+- **Native iOS and Android apps.** The app is packaged with [Capacitor](https://capacitorjs.com). In the native apps, data is also saved to
+  native storage, and optional daily reminders name each day's (adapted) session.
+
 ## Running it
 
-No build step and no dependencies.
-
 ```bash
-npm start          # serves the app at http://localhost:8080
-npm test           # runs the engine unit tests (node --test)
+npm install        # installs Capacitor (the web app itself has no runtime dependencies)
+npm start          # serves the web app at http://localhost:8080
+npm test           # runs the unit tests (node --test)
 ```
 
-To install it on a phone, host the folder on any static host with HTTPS (GitHub Pages, Netlify, etc.) and open it on the phone:
+### Phone apps (App Store / Google Play)
+
+```bash
+npm run cap:sync   # copy the web app into the native projects (after every change)
+npm run ios        # open in Xcode (Mac)
+npm run android    # open in Android Studio
+```
+
+The GitHub Actions workflow (`.github/workflows/mobile.yml`) runs the tests, builds an installable Android APK, builds a
+signed Play Store bundle once signing secrets are added, and compiles the iOS app. **[docs/APP_STORE.md](docs/APP_STORE.md)**
+walks through accounts, signing, store listing text, screenshots and review.
+
+### Web / PWA
+
+Host the folder on any static host with HTTPS (for example GitHub Pages), then open it on a phone:
 - **iPhone:** Safari → Share → Add to Home Screen
 - **Android:** Chrome → menu → Install app
 
@@ -57,9 +73,16 @@ js/data/jobs.js                           Jobs → required / recommended scores
 js/engine/scoring.js                      Points ⇄ raw values, pass/fail, per-event targets
 js/engine/planner.js                      Periodized plan + session prescriptions
 js/engine/adapt.js                        Diary analysis → plan adjustments
-js/ui/*.js                                Views (onboarding, today, plan, diary, progress, settings)
+js/ui/*.js                                Screens (onboarding, today, plan, diary, progress, settings)
 tests/engine.test.js                      Unit tests for scoring, planning and adaptation
-scripts/serve.mjs, scripts/make-icons.mjs Dev server and icon generator
+js/native.js, js/reminders.js             Capacitor bridge (no-op on the web) and daily reminders
+privacy.html                              Privacy policy (required by both stores)
+scripts/serve.mjs                         Dev server
+scripts/build-web.mjs                     Copies the web app into www/ for Capacitor
+scripts/make-icons.mjs                    Renders web, iOS and Android icons and splash screens
+ios/, android/                            Native projects (Capacitor)
+capacitor.config.json                     App ID, name and native plugin config
+docs/APP_STORE.md                         Publishing guide
 ```
 
 ## Disclaimer

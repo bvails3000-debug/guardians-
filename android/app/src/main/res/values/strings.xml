@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Guardians</string>
+    <string name="title_activity_main">Guardians</string>
+    <string name="package_name">com.guardiansfitness.app</string>
+    <string name="custom_url_scheme">com.guardiansfitness.app</string>
+</resources>
