@@ -35,7 +35,7 @@ function blankForm(date, existing) {
 export function renderDiary(root, app, param) {
   const state = app.state;
   const today = isoDate();
-  const date = param && /^\d{4}-\d{2}-\d{2}$/.test(param) && param <= today ? param : form?.date || today;
+  const date = param && /^\d{4}-\d{2}-\d{2}$/.test(param) && param <= today ? param : today;
   const existing = state.diary.find((e) => e.date === date);
   if (!form || form.date !== date) form = blankForm(date, existing);
 

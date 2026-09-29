@@ -206,3 +206,40 @@ test('weekSessions returns 7 days', () => {
   const ctx = buildContext(stateFor('marines-0311'));
   assert.equal(weekSessions(ctx, '2026-10-05').length, 7);
 });
+
+test('backup import keeps valid data and drops malformed or unsafe fields', async () => {
+  // store.js touches localStorage only inside functions, so importing it under Node is safe.
+  const { importJson, exportJson, emptyState } = await import('../js/store.js');
+  const good = {
+    ...emptyState(),
+    onboarded: true,
+    profile: { name: 'A', age: 20, sex: 'male', branch: 'navy' },
+    goal: { jobId: 'navy-so', testIds: ['seal_pst'], level: 'target', customTotals: {}, choices: {} },
+    schedule: { startDate: '2026-10-05', testDate: '2026-12-14', trainingDays: [1, 3, 5], pool: true },
+    results: [{ date: '2026-10-01', testId: 'seal_pst', eventId: 'pu', value: 60, source: 'baseline' }],
+    diary: [{ date: '2026-10-02', completion: 'full', rpe: 6, energy: 4, sleep: 4, soreness: 2, mood: 4, pain: ['knee'], sick: false, notes: 'ok' }],
+  };
+  const round = importJson(exportJson(good));
+  assert.equal(round.onboarded, true);
+  assert.deepEqual(round.results, good.results);
+  assert.deepEqual(round.diary, good.diary);
+
+  const evil = JSON.parse(JSON.stringify(good));
+  evil.profile.age = '"><img src=x onerror=alert(1)>';
+  evil.schedule.testDate = '"><script>alert(1)</script>';
+  evil.goal.testIds = ['seal_pst', 'nope'];
+  evil.goal.customTotals = { seal_pst: '<b>' };
+  evil.results.push({ date: 'bad', testId: 'seal_pst', eventId: 'pu', value: 1 }, { date: '2026-10-01', testId: 'seal_pst', eventId: 'zzz', value: 1 });
+  evil.diary[0].pain = ['knee', '<x>'];
+  const clean = importJson(JSON.stringify(evil));
+  assert.equal(clean.profile.age, null);
+  assert.equal(clean.schedule.testDate, null);
+  assert.equal(clean.onboarded, false, 'incomplete profile forces setup again');
+  assert.deepEqual(clean.goal.testIds, ['seal_pst']);
+  assert.deepEqual(clean.goal.customTotals, {});
+  assert.equal(clean.results.length, 1);
+  assert.deepEqual(clean.diary[0].pain, ['knee']);
+
+  assert.throws(() => importJson('not json'), /valid JSON/);
+  assert.throws(() => importJson('{}'), /Guardians backup/);
+});
